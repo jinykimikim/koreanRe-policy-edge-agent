@@ -616,6 +616,10 @@ def main():
                metrics={"통과율": f"{len(passed) / max(total_try, 1) * 100:.0f}%",
                         "인용 문제 비율":
                         f"{cite_err / max(len(rejected), 1) * 100:.0f}%"})
+    # Human Review용 목록은 Gate에 비워진 test_cases가 아니라 생존 레코드
+    # (passed)로 만든다. Gate 결과는 demo_output.html이 그대로 보여준다.
+    write_review_html(passed, rejected, OUT / "edge_cases.html",
+                      coverage_status=final_status, blocked=blocked)
     cache.save()
 
     log("Human Reviewer",
@@ -625,6 +629,7 @@ def main():
     if cache.misses:
         log("캐시", f"미스 {len(cache.misses)}건 — 결과가 불완전할 수 있습니다")
     print(f"        결과: {(OUT / 'demo_output.html').relative_to(ROOT)}")
+    print(f"        검토: {(OUT / 'edge_cases.html').relative_to(ROOT)}")
     if _LOG_FILE:
         _LOG_FILE.close()
 
@@ -830,6 +835,141 @@ def write_html(tcs, rejected, summary, coverage, path,
 
     parts.append("</div></body></html>")
     path.write_text("\n".join(parts), encoding="utf-8")
+
+
+# ── Human Review용 경계사례 목록 (edge_cases.html) ─────────
+# 이전 버전의 edge_cases.html 카드 구조를 그대로 가져왔다.
+# demo_output.html(Coverage/QA)과 달리 생존 레코드를 사례 단위로 읽게 한다.
+REVIEW_TMPL = """<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<title>약관 경계사례 검토 후보 목록</title>
+<style>
+ body{font-family:'Malgun Gothic',sans-serif;margin:0;background:#f4f5f7;color:#1a1a1a}
+ .wrap{max-width:1100px;margin:0 auto;padding:32px 24px 64px}
+ h1{font-size:24px;margin:0 0 6px}
+ .sub{color:#666;font-size:14px;margin-bottom:22px}
+ .note{background:#fffbea;border:1px solid #ecd98a;border-radius:8px;
+   padding:12px 16px;margin-bottom:22px;font-size:13.5px;line-height:1.7}
+ .stat{display:flex;gap:10px;margin-bottom:26px;flex-wrap:wrap}
+ .stat div{background:#fff;border:1px solid #dcdfe4;border-radius:8px;
+   padding:10px 16px;font-size:13px}
+ .stat b{font-size:20px;display:block;margin-top:2px}
+ .card{background:#fff;border:1px solid #dcdfe4;border-radius:10px;
+   padding:18px 20px;margin-bottom:14px}
+ .hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+ .id{font-weight:700;font-size:15px}
+ .term{background:#eef2ff;border-radius:5px;padding:2px 9px;font-size:13px}
+ .tag{font-size:11px;border-radius:4px;padding:2px 8px;border:1px solid #ccc}
+ .sev-상{background:#fdecec;border-color:#f0b4b4}
+ .sev-중{background:#fff6e5;border-color:#f0d9a8}
+ .st-판단보류{background:#eceff3;border-color:#c3c9d1}
+ .row{display:grid;grid-template-columns:76px 1fr;gap:10px;
+   padding:7px 0;border-top:1px solid #f0f1f3;font-size:14px;line-height:1.65}
+ .k{color:#777;font-size:12px;padding-top:3px}
+ .ab{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+ .ab div{background:#fafbfc;border:1px solid #e6e8eb;border-radius:7px;
+   padding:11px 13px;font-size:13.5px;line-height:1.65}
+ .ab b{display:block;margin-bottom:5px;font-size:12px;color:#555}
+ code{background:#f2f3f5;border-radius:3px;padding:1px 5px;font-size:12px}
+ .ev{font-size:13px;color:#444;line-height:1.7}
+ ul{margin:0;padding-left:18px}
+ .rej{margin-top:34px}
+ .rej .card{background:#fcfcfc}
+ .why{color:#b03030;font-size:13px;line-height:1.6}
+ @media(max-width:760px){.ab{grid-template-columns:1fr}}
+</style></head><body><div class="wrap">
+<h1>약관 경계사례 검토 후보 목록</h1>
+<div class="sub">약관 문언만으로 해석이 갈리는 지점입니다.
+지급 여부 판정이 아니라 약관 수정 검토용입니다.</div>
+__NOTE__
+<div class="stat">
+ <div>검토 후보<b>__PASS__건</b></div>
+ <div>반려<b>__REJ__건</b></div>
+ <div>Coverage<b>__COV__</b></div>
+</div>
+__CARDS__
+__REJECTED__
+</div></body></html>"""
+
+
+def write_review_html(records, rejected, path, coverage_status, blocked):
+    """생존 레코드(passed)를 사례 카드로 쓴다.
+
+    Coverage Gate와 무관하게 생존 레코드를 모두 싣는다. 대신 이 목록이
+    승인된 Test Case나 지급 판단이 아니라는 점을 맨 위에 밝힌다.
+    """
+    note = ('<div class="note"><b>이 목록은 검토 후보입니다.</b> '
+            'Case Critic과 Code Verify를 통과해 살아남은 사례이며, '
+            '최종 승인된 Test Case도, 보험금 지급 여부 판단도 아닙니다. '
+            '기대결과는 모두 "검토 필요"이고, 채택 여부는 사람이 정합니다.')
+    if blocked:
+        note += ('<br><b>이번 실행은 Coverage Gate를 통과하지 못했습니다'
+                 f'({esc(coverage_status)}).</b> Test Case는 생성되지 '
+                 '않았습니다. Gate 결과는 demo_output.html에서 확인하세요.')
+    note += "</div>"
+
+    cards = []
+    for r in records:
+        texts = r.get("cited_text") or []
+        cites = "<br>".join(
+            f"<code>{esc(c)}</code> "
+            f"{esc(texts[i] if i < len(texts) else '')}"
+            for i, c in enumerate(r.get("cited_clauses") or [])) or "(없음)"
+        issues = "".join(f"<li>{esc(x)}</li>"
+                         for x in r.get("unresolved_issues") or [])
+        questions = "".join(f"<li>{esc(x)}</li>"
+                            for x in r.get("review_questions") or [])
+        cards.append(f"""<div class="card">
+ <div class="hd">
+  <span class="id">{esc(r.get('case_id'))}</span>
+  <span class="term">{esc(r.get('ambiguous_term'))}</span>
+  <span class="tag">{esc(r.get('issue_type'))}</span>
+  <span class="tag">{esc(r.get('case_type'))}</span>
+  <span class="tag">{esc(r.get('coverage_dimension'))}</span>
+  <span class="tag sev-{esc(r.get('severity'))}">중요도 {esc(r.get('severity'))}</span>
+  <span class="tag st-{esc(r.get('status'))}">{esc(r.get('status'))}</span>
+ </div>
+ <div class="row"><div class="k">시나리오</div><div>{esc(r.get('scenario'))}</div></div>
+ <div class="ab">
+  <div><b>해석 A</b>{esc(r.get('interpretation_a'))}</div>
+  <div><b>해석 B</b>{esc(r.get('interpretation_b'))}</div>
+ </div>
+ <div class="row"><div class="k">근거</div><div class="ev">{cites}</div></div>
+ <div class="row"><div class="k">영향</div><div>{esc(r.get('impact'))}</div></div>
+ <div class="row"><div class="k">권고</div><div>{esc(r.get('recommendation'))}</div></div>"""
+                     + (f"""
+ <div class="row"><div class="k">미확정 쟁점</div><div><ul>{issues}</ul></div></div>"""
+                        if issues else "")
+                     + (f"""
+ <div class="row"><div class="k">검토 질문</div><div><ul>{questions}</ul></div></div>"""
+                        if questions else "")
+                     + "\n</div>")
+
+    rej_html = ""
+    if rejected:
+        items = []
+        for r in rejected:
+            why = r.get("reject_reasons") or []
+            items.append(f"""<div class="card">
+ <div class="hd"><span class="id">{esc(r.get('case_id'))}</span>
+ <span class="term">{esc(r.get('ambiguous_term'))}</span>
+ <span class="tag">{esc(r.get('rejected_by'))} 반려</span>
+ <span class="tag">시도 {esc(r.get('attempt'))}</span></div>
+ <div class="why">{esc(why[0] if why else '사유 미기재')}</div>
+</div>""")
+        rej_html = ('<div class="rej"><h1 style="font-size:19px">반려된 레코드</h1>'
+                    '<div class="sub">루프가 걸러낸 것들입니다. '
+                    'Code Verify 반려는 Case Critic이 통과시킨 것을 코드가 '
+                    '다시 잡은 경우입니다.</div>' + "\n".join(items) + "</div>")
+
+    html = (REVIEW_TMPL
+            .replace("__NOTE__", note)
+            .replace("__PASS__", str(len(records)))
+            .replace("__REJ__", str(len(rejected)))
+            .replace("__COV__", esc(coverage_status))
+            .replace("__CARDS__", "\n".join(cards))
+            .replace("__REJECTED__", rej_html))
+    path.write_text(html, encoding="utf-8")
 
 
 if __name__ == "__main__":

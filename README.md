@@ -135,7 +135,8 @@ EMBED_MODEL=BAAI/bge-m3 python src/run.py     # 기본값
 
 | 파일 | 역할 |
 |---|---|
-| [`outputs/demo_output.html`](outputs/demo_output.html) | **Human Reviewer가 보는 최종 결과.** 브라우저로 엽니다 |
+| [`outputs/demo_output.html`](outputs/demo_output.html) | **Coverage/QA 실행 결과.** Coverage Gate 판정, 승인된 Test Case, 반려 사유를 보여줍니다. 브라우저로 엽니다 |
+| [`outputs/edge_cases.html`](outputs/edge_cases.html) | **Human Review용 경계사례 목록.** Gate 결과와 무관하게 생존 사례를 카드로 보여줍니다. 승인된 Test Case가 아니라 검토 후보입니다. `python src/render_review.py`로 재실행 없이 다시 만들 수 있습니다 |
 | `outputs/test_cases.json` | Formatter가 만든 구조화된 테스트 케이스. 후속 시스템용 |
 | `outputs/edge_cases.json` | 검토 단계의 edge case 원본 기록 |
 | `outputs/edge_cases.md` | 사람이 읽는 목록 |
