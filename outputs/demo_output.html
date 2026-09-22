@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<title>약관 경계사례 테스트 케이스 — 검토 대기</title>
+<style>
+ body{font-family:'Malgun Gothic',sans-serif;margin:0;background:#f4f5f7;color:#1a1a1a}
+ .wrap{max-width:1180px;margin:0 auto;padding:30px 22px 70px}
+ h1{font-size:23px;margin:0 0 5px} h2{font-size:18px;margin:34px 0 10px}
+ .sub{color:#666;font-size:13.5px;margin-bottom:20px;line-height:1.6}
+ .stat{display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap}
+ .stat div{background:#fff;border:1px solid #dcdfe4;border-radius:8px;
+  padding:9px 15px;font-size:12.5px}
+ .stat b{font-size:19px;display:block;margin-top:2px}
+ .card{background:#fff;border:1px solid #dcdfe4;border-radius:10px;
+  padding:17px 19px;margin-bottom:13px}
+ .hd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:9px}
+ .id{font-weight:700;font-size:15px}
+ .term{background:#eef2ff;border-radius:5px;padding:2px 9px;font-size:12.5px}
+ .tag{font-size:11px;border-radius:4px;padding:2px 8px;border:1px solid #ccc;
+  background:#fafafa}
+ .t-경계사례{background:#fff4e5;border-color:#efd3a3}
+ .t-판단불가{background:#eceff3;border-color:#c3c9d1}
+ .t-반례{background:#f0f7ff;border-color:#b9d4ef}
+ .t-정상사례{background:#eef8ef;border-color:#b9dcbd}
+ .meta{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:9px 0}
+ .meta div{background:#fafbfc;border:1px solid #e9ebee;border-radius:6px;
+  padding:7px 10px;font-size:12.5px}
+ .meta span{display:block;color:#888;font-size:10.5px;margin-bottom:2px}
+ .row{display:grid;grid-template-columns:88px 1fr;gap:9px;padding:6px 0;
+  border-top:1px solid #f0f1f3;font-size:13.5px;line-height:1.65}
+ .k{color:#777;font-size:11.5px;padding-top:3px}
+ .ab{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:9px 0}
+ .ab div{background:#fafbfc;border:1px solid #e6e8eb;border-radius:7px;
+  padding:10px 12px;font-size:13px;line-height:1.65}
+ .ab b{display:block;margin-bottom:4px;font-size:11.5px;color:#555}
+ code{background:#f2f3f5;border-radius:3px;padding:1px 5px;font-size:11.5px}
+ .ev{font-size:12px;color:#555;line-height:1.8}
+ .ev i{color:#999;font-style:normal;font-size:11px}
+ ul{margin:2px 0;padding-left:17px} li{margin:2px 0}
+ .chk{background:#fffdf5;border:1px dashed #ddcfa0;border-radius:7px;
+  padding:9px 12px;margin-top:9px;font-size:12px;color:#7a6a3a;line-height:1.8}
+ .why{color:#b03030;font-size:12.5px;line-height:1.6}
+ @media(max-width:860px){.ab,.meta{grid-template-columns:1fr}}
+</style></head><body><div class="wrap">
+<h1>약관 경계사례 테스트 케이스 — 검토 대기</h1>
+<div class="sub">약관 문언만으로 해석이 갈리는 지점입니다. 지급 여부 판정이 아니라 약관 수정 검토용입니다.<br>기대결과는 모두 "검토 필요"이며, 판정은 사람이 합니다.</div>
+<div class="stat"><div>검토 대기<b>0건</b></div><div>반려<b>17건</b></div>
+<div>경계사례<b>10건</b></div>
+<div>판단불가<b>5건</b></div>
+<div>정상사례<b>1건</b></div>
+</div>
+<div class="stat">
+<div>기간경계<b>6건</b></div>
+<div>입원·재입원<b>1건</b></div>
+<div>문서간충돌<b>6건</b></div>
+<div>판정기준부재<b>1건</b></div>
+<div>급부중복<b>1건</b></div>
+<div>판단불가<b>1건</b></div>
+<div>통과율<b>48%</b></div>
+<div>인용 문제 비율<b>47%</b></div>
+</div>
+<div class="warn"><b>커버리지 미달 상태입니다 — 승인 전 보완이 필요합니다.</b><br>정상사례 1건 부족, 반례 2건 부족<br><b>Test Case 생성이 차단되었습니다.</b> 아래 목록은 승인된 Test Case가 아니라 검토용 생존 사례입니다.<br>추가 생성 한도에 걸려 목표를 채우지 못한 채 종료되었습니다. 정상사례가 없으면 오탐 검증이, 반례가 없으면 유사 사례 구분 검증이 불가능합니다. 이 목록은 그대로 채택하지 말고 부족한 유형을 보완한 뒤 UAT로 넘기시기 바랍니다.</div>
+<div class="sub">커버리지 판정: insufficient — 여섯 개 축이 모두 최소 1건씩 채워졌고 유형별 목표치(정상 2/경계 4/반례 2/판단불가 2)도 총량으로는 충족하나, 22건 중 10건이 기간경계 축에 몰려 있고 정상사례 2건·반례 2건이 전부 기간경계 축에만 배치되어 나머지 5개 축에서는 오탐 검출력과 유사건 구분력을 전혀 검증할 수 없다. 또한 입원·재입원 축의 '합병증으로 인한 재입원이 동일한 원인에 해당하는가'는 판단불가 1건과 경계사례 1건이 사실상 같은 상황을 반복한다.</div>
+<h2>반려된 사례</h2><div class="sub">루프가 걸러낸 것들입니다. Code Verify 반려는 Case Critic이 통과시킨 것을 코드가 다시 잡은 경우입니다.</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-002</span>
+ <span class="term">계약일부터 1년이 되는 날까지 발생한 질병으로 인한 입원</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 1</span></div>
+ <div class="why">근거 조문 무관 — 제4조 제1항(1회 입원당 120일 한도): 이 사례의 입원기간 2025-02-25~2025-06-10은 [별표1] 제1호(양끝 포함) 기준 106일로 120일 한도에 도달하지 않으므로, '한도일수를 감액분과 전액분에 어떻게 배분하는가'라는 쟁점이 이 사실관계에서는 발생하지 않는다. 조문은 실재하나 해석A/해석B의 대립을 뒷받침하지 않는 인용이다.</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-002</span>
+ <span class="term">계약일부터 1년이 되는 날까지 발생한 질병으로 인한 입원</span>
+ <span class="tag">Code Verify 반려</span>
+ <span class="tag">시도 2</span></div>
+ <div class="why">interpretation_b에 지급 여부 결론이 포함됨</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-002</span>
+ <span class="term">동일한 질병 / 동일한 원인</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 1</span></div>
+ <div class="why">근거 조문 무관 — 제4조 제1항(1회 입원당 120일 한도): 이 사례의 입원기간 2025-02-25~2025-06-10은 [별표1] 제1호(양끝 포함) 기준 106일로 120일 한도에 도달하지 않으므로, '한도일수를 감액분과 전액분에 어떻게 배분하는가'라는 쟁점이 이 사실관계에서는 발생하지 않는다. 조문은 실재하나 해석A/해석B의 대립을 뒷받침하지 않는 인용이다.</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-002</span>
+ <span class="term">계약일부터 1년이 되는 날까지 발생한 질병으로 인한 입원</span>
+ <span class="tag">Code Verify 반려</span>
+ <span class="tag">시도 2</span></div>
+ <div class="why">interpretation_b에 지급 여부 결론이 포함됨</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-011</span>
+ <span class="term">관혈적 처치</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 1</span></div>
+ <div class="why">해석A의 핵심 전제인 '내시경적 절제술은 관혈적 처치가 아니다'를 근거 조문이 뒷받침하지 못함. 인용한 보통약관 제2조 제2항 제5호는 '수술=관혈적 처치'라는 정의만 제공할 뿐 내시경적 절제술의 관혈성 여부를 판정하는 근거가 되지 않음</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-011</span>
+ <span class="term">관혈적 처치</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 2</span></div>
+ <div class="why">시나리오에 날짜·일수가 전혀 없고 dates 4개 항목이 모두 '미확인'이어서, 특정 피보험자의 특정 처치 건이 아니라 '내시경적 절제술의 분류' 일반론으로 서술되어 있음 — 개별 사례로서의 구체성 결여</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-011</span>
+ <span class="term">외박한 날</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 1</span></div>
+ <div class="why">해석A의 핵심 전제인 '내시경적 절제술은 관혈적 처치가 아니다'를 근거 조문이 뒷받침하지 못함. 인용한 보통약관 제2조 제2항 제5호는 '수술=관혈적 처치'라는 정의만 제공할 뿐 내시경적 절제술의 관혈성 여부를 판정하는 근거가 되지 않음</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-011</span>
+ <span class="term">관혈적 처치</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 2</span></div>
+ <div class="why">시나리오에 날짜·일수가 전혀 없고 dates 4개 항목이 모두 '미확인'이어서, 특정 피보험자의 특정 처치 건이 아니라 '내시경적 절제술의 분류' 일반론으로 서술되어 있음 — 개별 사례로서의 구체성 결여</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-011</span>
+ <span class="term">같은 기간에 대하여 … 중복하여 지급하지 않습니다 / 중환자실 입원기간 중 질병입원일당</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 1</span></div>
+ <div class="why">해석A의 핵심 전제인 '내시경적 절제술은 관혈적 처치가 아니다'를 근거 조문이 뒷받침하지 못함. 인용한 보통약관 제2조 제2항 제5호는 '수술=관혈적 처치'라는 정의만 제공할 뿐 내시경적 절제술의 관혈성 여부를 판정하는 근거가 되지 않음</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-011</span>
+ <span class="term">관혈적 처치</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 2</span></div>
+ <div class="why">시나리오에 날짜·일수가 전혀 없고 dates 4개 항목이 모두 '미확인'이어서, 특정 피보험자의 특정 처치 건이 아니라 '내시경적 절제술의 분류' 일반론으로 서술되어 있음 — 개별 사례로서의 구체성 결여</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-011</span>
+ <span class="term">그 제3자의 의견에 따를 수 있습니다</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 1</span></div>
+ <div class="why">해석A의 핵심 전제인 '내시경적 절제술은 관혈적 처치가 아니다'를 근거 조문이 뒷받침하지 못함. 인용한 보통약관 제2조 제2항 제5호는 '수술=관혈적 처치'라는 정의만 제공할 뿐 내시경적 절제술의 관혈성 여부를 판정하는 근거가 되지 않음</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-011</span>
+ <span class="term">관혈적 처치</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 2</span></div>
+ <div class="why">시나리오에 날짜·일수가 전혀 없고 dates 4개 항목이 모두 '미확인'이어서, 특정 피보험자의 특정 처치 건이 아니라 '내시경적 절제술의 분류' 일반론으로 서술되어 있음 — 개별 사례로서의 구체성 결여</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-011</span>
+ <span class="term">계약일부터 그 날을 포함하여 90일이 지난 날의 다음 날</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 1</span></div>
+ <div class="why">해석A의 핵심 전제인 '내시경적 절제술은 관혈적 처치가 아니다'를 근거 조문이 뒷받침하지 못함. 인용한 보통약관 제2조 제2항 제5호는 '수술=관혈적 처치'라는 정의만 제공할 뿐 내시경적 절제술의 관혈성 여부를 판정하는 근거가 되지 않음</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-011</span>
+ <span class="term">관혈적 처치</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 2</span></div>
+ <div class="why">시나리오에 날짜·일수가 전혀 없고 dates 4개 항목이 모두 '미확인'이어서, 특정 피보험자의 특정 처치 건이 아니라 '내시경적 절제술의 분류' 일반론으로 서술되어 있음 — 개별 사례로서의 구체성 결여</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-013</span>
+ <span class="term">계약일부터 1년이 되는 날까지 발생한 질병으로 인한 입원</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 1</span></div>
+ <div class="why">해석A와 해석B가 서로 다른 결론에 이르지 않는다. 해석B 자체가 '결론이 같다', recommendation도 '두 해석이 같은 결론에 이르므로 경계사례가 아니다'라고 명시하고 있어, 두 해석이 대립하는 결론을 만들지 못한다.</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-013</span>
+ <span class="term">계약일부터 1년이 되는 날까지 발생한 질병으로 인한 입원</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 2</span></div>
+ <div class="why">근거 조문 [별표1] 입원일수 산정기준표 제4호(퇴원 후 180일 이내 재입원 시 계속된 하나의 입원)는 이 사안의 사실관계와 무관하다. dates에 재입원 사실이 없고 단일 입원(2026-03-05~2026-03-20)만 존재하며, 해석A·해석B 어느 쪽 논증에도 재입원 합산 법리가 사용되지 않는다. 검토질문 4에서 가정적으로 언급될 뿐이어서 해석을 뒷받침하는 근거가 되지 못한다.</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-014</span>
+ <span class="term">퇴원한 날부터 180일 이내에 동일한 원인으로 재입원한 경우</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 1</span></div>
+ <div class="why">해석A와 해석B가 서로 다른 결론이 아니다. A는 '180일 요건 미충족 → 연속성 부정 → 120일 한도 재기산'이고, B는 '동일 원인을 고려해도 180일 수치 기준을 초과하므로 연속성 인정 근거 없음'으로, B는 A와 동일한 결론을 보강 논증한 것에 불과하다. 대립 해석이 아니라 같은 결론의 재진술이다.</div>
+</div>
+</div></body></html>
