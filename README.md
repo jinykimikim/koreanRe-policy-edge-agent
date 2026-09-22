@@ -152,6 +152,22 @@ EMBED_MODEL=BAAI/bge-m3 python src/run.py     # 기본값
 SKILL.md가 금지하고, `verify.py`가 문자열로 다시 막습니다. 약관만으로 결론이
 나지 않는 사례는 `판단불가` 유형으로 보존합니다.
 
+### HTML 산출물
+
+두 파일은 중복이 아닙니다. `demo_output.html`은 Agent의 Coverage/QA 상태를,
+`edge_cases.html`은 Human Reviewer가 실제 사례를 검토하는 화면을 보여줍니다.
+
+- `outputs/demo_output.html` — Coverage/QA 결과
+  - `test_cases`를 입력으로 씁니다.
+  - Coverage Gate 결과에 따라 Test Case 생성이 차단될 수 있습니다.
+  - 이번 실행은 `INSUFFICIENT_COVERAGE`로 차단되어 Test Case 카드 없이
+    Coverage 판정과 반려 결과만 보여줍니다.
+- `outputs/edge_cases.html` — Human Review용
+  - Gate를 거친 `test_cases`가 아니라, 검증 과정에서 살아남은 `passed` 사례를 씁니다.
+  - 사례마다 시나리오, 해석 A/B, 근거, 영향, 권고를 사람이 검토합니다.
+  - 여기 실린 사례는 보험금 지급 판단이나 승인된 Test Case가 아니라
+    약관 수정·검토를 위한 후보입니다.
+
 ---
 
 ## 재현성
