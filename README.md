@@ -135,7 +135,7 @@ EMBED_MODEL=BAAI/bge-m3 python src/run.py     # 기본값
 
 | 파일 | 역할 |
 |---|---|
-| `outputs/demo_output.html` | **Human Reviewer가 보는 최종 결과.** 브라우저로 엽니다 |
+| [`outputs/demo_output.html`](outputs/demo_output.html) | **Human Reviewer가 보는 최종 결과.** 브라우저로 엽니다 |
 | `outputs/test_cases.json` | Formatter가 만든 구조화된 테스트 케이스. 후속 시스템용 |
 | `outputs/edge_cases.json` | 검토 단계의 edge case 원본 기록 |
 | `outputs/edge_cases.md` | 사람이 읽는 목록 |
@@ -717,7 +717,7 @@ Case Critic · user 프롬프트 머리말 (첫 기록 09-21 04:14, `800fa2bc`)
 
 V3에서 인용 문제는 줄었지만, 정상사례와 반례가 검증을 통과하지 못했습니다. 정상사례 지시("어느 쪽이 우세한지 밝혀라")와 Case Critic 1번 기준("해석A와 해석B가 실제로 서로 다른 결론인가")이 서로 부딪히기 때문입니다. 현재 Case Critic은 모든 유형을 경계사례 기준으로 심사합니다. 그래서 다음 개선이 필요합니다.
 
-**Observed Result** (09-21 03:56 ~ 04:28, `outputs/run_log.txt`)
+**Observed Result** (09-21 03:56 ~ 04:28, [`outputs/run_log.txt`](outputs/run_log.txt))
 
 | 항목 | 결과 |
 |---|---|
@@ -836,7 +836,7 @@ Case Critic은 통과시켰는데 Code Verify가 반려한 경우 로그에 따�
 |---|---|---|
 | 모델 호출 기록 (Actual Prompt 원문) | `~/.claude/projects/C--Users-jinyk-Documents-korean-re-demo-policy-edge-cases/*.jsonl` | 각 버전의 Actual Prompt, Observed Result. 발췌 옆 8자리 id가 파일명 앞부분입니다 |
 | 초기 코드·SKILL.md | `~/Downloads/코리안리 강의 준비/예제03_경계사례.zip` | V0 재구성 지시문 |
-| 최종 실행 로그 | `outputs/run_log.txt` | V3 Observed Result |
+| 최종 실행 로그 | [`outputs/run_log.txt`](outputs/run_log.txt) | V3 Observed Result |
 | 사용자 복기본 | `프롬프트.txt` | Final Prompt |
 
 > 모델 호출 기록(`.jsonl`)은 Actual Prompt의 유일한 원본입니다. 이 파일이 지워지면 V0~V3의 원문 근거도 함께 사라집니다.
