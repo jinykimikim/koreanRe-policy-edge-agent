@@ -2,3 +2,4 @@ work/
 outputs/
 __pycache__/
 .env
+cls.txt
