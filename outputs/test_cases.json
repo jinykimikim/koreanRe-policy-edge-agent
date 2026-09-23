@@ -2,7 +2,7 @@
   "coverage_status": "INSUFFICIENT_COVERAGE",
   "formatter_blocked": true,
   "missing_case_types": {
-    "정상사례": 1,
+    "정상사례": 2,
     "반례": 2
   },
   "test_cases": []

@@ -43,141 +43,119 @@
 </style></head><body><div class="wrap">
 <h1>약관 경계사례 테스트 케이스 — 검토 대기</h1>
 <div class="sub">약관 문언만으로 해석이 갈리는 지점입니다. 지급 여부 판정이 아니라 약관 수정 검토용입니다.<br>기대결과는 모두 "검토 필요"이며, 판정은 사람이 합니다.</div>
-<div class="stat"><div>검토 대기<b>0건</b></div><div>반려<b>17건</b></div>
-<div>경계사례<b>10건</b></div>
-<div>판단불가<b>5건</b></div>
-<div>정상사례<b>1건</b></div>
+<div class="stat"><div>검토 대기<b>0건</b></div><div>반려<b>14건</b></div>
+<div>경계사례<b>8건</b></div>
+<div>판단불가<b>4건</b></div>
 </div>
 <div class="stat">
-<div>기간경계<b>6건</b></div>
-<div>입원·재입원<b>1건</b></div>
-<div>문서간충돌<b>6건</b></div>
-<div>판정기준부재<b>1건</b></div>
-<div>급부중복<b>1건</b></div>
+<div>기간경계<b>4건</b></div>
+<div>입원·재입원<b>2건</b></div>
+<div>문서간충돌<b>1건</b></div>
+<div>판정기준부재<b>2건</b></div>
+<div>급부중복<b>2건</b></div>
 <div>판단불가<b>1건</b></div>
-<div>통과율<b>48%</b></div>
-<div>인용 문제 비율<b>47%</b></div>
+<div>통과율<b>46%</b></div>
+<div>인용 문제 비율<b>79%</b></div>
 </div>
-<div class="warn"><b>커버리지 미달 상태입니다 — 승인 전 보완이 필요합니다.</b><br>정상사례 1건 부족, 반례 2건 부족<br><b>Test Case 생성이 차단되었습니다.</b> 아래 목록은 승인된 Test Case가 아니라 검토용 생존 사례입니다.<br>추가 생성 한도에 걸려 목표를 채우지 못한 채 종료되었습니다. 정상사례가 없으면 오탐 검증이, 반례가 없으면 유사 사례 구분 검증이 불가능합니다. 이 목록은 그대로 채택하지 말고 부족한 유형을 보완한 뒤 UAT로 넘기시기 바랍니다.</div>
-<div class="sub">커버리지 판정: insufficient — 여섯 개 축이 모두 최소 1건씩 채워졌고 유형별 목표치(정상 2/경계 4/반례 2/판단불가 2)도 총량으로는 충족하나, 22건 중 10건이 기간경계 축에 몰려 있고 정상사례 2건·반례 2건이 전부 기간경계 축에만 배치되어 나머지 5개 축에서는 오탐 검출력과 유사건 구분력을 전혀 검증할 수 없다. 또한 입원·재입원 축의 '합병증으로 인한 재입원이 동일한 원인에 해당하는가'는 판단불가 1건과 경계사례 1건이 사실상 같은 상황을 반복한다.</div>
+<div class="warn"><b>커버리지 미달 상태입니다 — 승인 전 보완이 필요합니다.</b><br>정상사례 2건 부족, 반례 2건 부족<br><b>Test Case 생성이 차단되었습니다.</b> 아래 목록은 승인된 Test Case가 아니라 검토용 생존 사례입니다.<br>추가 생성 한도에 걸려 목표를 채우지 못한 채 종료되었습니다. 정상사례가 없으면 오탐 검증이, 반례가 없으면 유사 사례 구분 검증이 불가능합니다. 이 목록은 그대로 채택하지 말고 부족한 유형을 보완한 뒤 UAT로 넘기시기 바랍니다.</div>
+<div class="sub">커버리지 판정: insufficient — 여섯 축이 모두 채워졌고 유형별 목표치도 모두 넘었다. 그러나 24건 중 14건이 기간경계에 몰려 있다. 그 안에서도 같은 쟁점이 여러 번 나온다. EC-003·EC-006은 '발생'을 증상일로 볼지 진단일로 볼지, EC-009·EC-010은 계약일 정의, EC-001·EC-002는 90일 계산, EC-005·EC-006은 보장개시 전 발병이 쟁점이다. 정상사례 2건과 반례 2건도 전부 기간경계에만 있다. 그래서 입원·재입원, 문서간충돌, 판정기준부재, 급부중복 축에서는 오탐을 걸러내는지와 비슷한 사례를 구분하는지 확인할 수 없다.</div>
 <h2>반려된 사례</h2><div class="sub">루프가 걸러낸 것들입니다. Code Verify 반려는 Case Critic이 통과시킨 것을 코드가 다시 잡은 경우입니다.</div>
 <div class="card">
- <div class="hd"><span class="id">EC-002</span>
- <span class="term">계약일부터 1년이 되는 날까지 발생한 질병으로 인한 입원</span>
+ <div class="hd"><span class="id">EC-011</span>
+ <span class="term">각각의 입원에 대하여 제3조(보험금의 지급사유)를 적용 / 계속된 하나의 입원으로 보며, 한도일수는 최초 입원일부터 기산</span>
  <span class="tag">Case Critic 반려</span>
  <span class="tag">시도 1</span></div>
- <div class="why">근거 조문 무관 — 제4조 제1항(1회 입원당 120일 한도): 이 사례의 입원기간 2025-02-25~2025-06-10은 [별표1] 제1호(양끝 포함) 기준 106일로 120일 한도에 도달하지 않으므로, '한도일수를 감액분과 전액분에 어떻게 배분하는가'라는 쟁점이 이 사실관계에서는 발생하지 않는다. 조문은 실재하나 해석A/해석B의 대립을 뒷받침하지 않는 인용이다.</div>
-</div>
-<div class="card">
- <div class="hd"><span class="id">EC-002</span>
- <span class="term">계약일부터 1년이 되는 날까지 발생한 질병으로 인한 입원</span>
- <span class="tag">Code Verify 반려</span>
- <span class="tag">시도 2</span></div>
- <div class="why">interpretation_b에 지급 여부 결론이 포함됨</div>
-</div>
-<div class="card">
- <div class="hd"><span class="id">EC-002</span>
- <span class="term">동일한 질병 / 동일한 원인</span>
- <span class="tag">Case Critic 반려</span>
- <span class="tag">시도 1</span></div>
- <div class="why">근거 조문 무관 — 제4조 제1항(1회 입원당 120일 한도): 이 사례의 입원기간 2025-02-25~2025-06-10은 [별표1] 제1호(양끝 포함) 기준 106일로 120일 한도에 도달하지 않으므로, '한도일수를 감액분과 전액분에 어떻게 배분하는가'라는 쟁점이 이 사실관계에서는 발생하지 않는다. 조문은 실재하나 해석A/해석B의 대립을 뒷받침하지 않는 인용이다.</div>
-</div>
-<div class="card">
- <div class="hd"><span class="id">EC-002</span>
- <span class="term">계약일부터 1년이 되는 날까지 발생한 질병으로 인한 입원</span>
- <span class="tag">Code Verify 반려</span>
- <span class="tag">시도 2</span></div>
- <div class="why">interpretation_b에 지급 여부 결론이 포함됨</div>
-</div>
-<div class="card">
- <div class="hd"><span class="id">EC-011</span>
- <span class="term">관혈적 처치</span>
- <span class="tag">Case Critic 반려</span>
- <span class="tag">시도 1</span></div>
- <div class="why">해석A의 핵심 전제인 '내시경적 절제술은 관혈적 처치가 아니다'를 근거 조문이 뒷받침하지 못함. 인용한 보통약관 제2조 제2항 제5호는 '수술=관혈적 처치'라는 정의만 제공할 뿐 내시경적 절제술의 관혈성 여부를 판정하는 근거가 되지 않음</div>
-</div>
-<div class="card">
- <div class="hd"><span class="id">EC-011</span>
- <span class="term">관혈적 처치</span>
- <span class="tag">Case Critic 반려</span>
- <span class="tag">시도 2</span></div>
- <div class="why">시나리오에 날짜·일수가 전혀 없고 dates 4개 항목이 모두 '미확인'이어서, 특정 피보험자의 특정 처치 건이 아니라 '내시경적 절제술의 분류' 일반론으로 서술되어 있음 — 개별 사례로서의 구체성 결여</div>
-</div>
-<div class="card">
- <div class="hd"><span class="id">EC-011</span>
- <span class="term">외박한 날</span>
- <span class="tag">Case Critic 반려</span>
- <span class="tag">시도 1</span></div>
- <div class="why">해석A의 핵심 전제인 '내시경적 절제술은 관혈적 처치가 아니다'를 근거 조문이 뒷받침하지 못함. 인용한 보통약관 제2조 제2항 제5호는 '수술=관혈적 처치'라는 정의만 제공할 뿐 내시경적 절제술의 관혈성 여부를 판정하는 근거가 되지 않음</div>
-</div>
-<div class="card">
- <div class="hd"><span class="id">EC-011</span>
- <span class="term">관혈적 처치</span>
- <span class="tag">Case Critic 반려</span>
- <span class="tag">시도 2</span></div>
- <div class="why">시나리오에 날짜·일수가 전혀 없고 dates 4개 항목이 모두 '미확인'이어서, 특정 피보험자의 특정 처치 건이 아니라 '내시경적 절제술의 분류' 일반론으로 서술되어 있음 — 개별 사례로서의 구체성 결여</div>
-</div>
-<div class="card">
- <div class="hd"><span class="id">EC-011</span>
- <span class="term">같은 기간에 대하여 … 중복하여 지급하지 않습니다 / 중환자실 입원기간 중 질병입원일당</span>
- <span class="tag">Case Critic 반려</span>
- <span class="tag">시도 1</span></div>
- <div class="why">해석A의 핵심 전제인 '내시경적 절제술은 관혈적 처치가 아니다'를 근거 조문이 뒷받침하지 못함. 인용한 보통약관 제2조 제2항 제5호는 '수술=관혈적 처치'라는 정의만 제공할 뿐 내시경적 절제술의 관혈성 여부를 판정하는 근거가 되지 않음</div>
-</div>
-<div class="card">
- <div class="hd"><span class="id">EC-011</span>
- <span class="term">관혈적 처치</span>
- <span class="tag">Case Critic 반려</span>
- <span class="tag">시도 2</span></div>
- <div class="why">시나리오에 날짜·일수가 전혀 없고 dates 4개 항목이 모두 '미확인'이어서, 특정 피보험자의 특정 처치 건이 아니라 '내시경적 절제술의 분류' 일반론으로 서술되어 있음 — 개별 사례로서의 구체성 결여</div>
-</div>
-<div class="card">
- <div class="hd"><span class="id">EC-011</span>
- <span class="term">그 제3자의 의견에 따를 수 있습니다</span>
- <span class="tag">Case Critic 반려</span>
- <span class="tag">시도 1</span></div>
- <div class="why">해석A의 핵심 전제인 '내시경적 절제술은 관혈적 처치가 아니다'를 근거 조문이 뒷받침하지 못함. 인용한 보통약관 제2조 제2항 제5호는 '수술=관혈적 처치'라는 정의만 제공할 뿐 내시경적 절제술의 관혈성 여부를 판정하는 근거가 되지 않음</div>
-</div>
-<div class="card">
- <div class="hd"><span class="id">EC-011</span>
- <span class="term">관혈적 처치</span>
- <span class="tag">Case Critic 반려</span>
- <span class="tag">시도 2</span></div>
- <div class="why">시나리오에 날짜·일수가 전혀 없고 dates 4개 항목이 모두 '미확인'이어서, 특정 피보험자의 특정 처치 건이 아니라 '내시경적 절제술의 분류' 일반론으로 서술되어 있음 — 개별 사례로서의 구체성 결여</div>
-</div>
-<div class="card">
- <div class="hd"><span class="id">EC-011</span>
- <span class="term">계약일부터 그 날을 포함하여 90일이 지난 날의 다음 날</span>
- <span class="tag">Case Critic 반려</span>
- <span class="tag">시도 1</span></div>
- <div class="why">해석A의 핵심 전제인 '내시경적 절제술은 관혈적 처치가 아니다'를 근거 조문이 뒷받침하지 못함. 인용한 보통약관 제2조 제2항 제5호는 '수술=관혈적 처치'라는 정의만 제공할 뿐 내시경적 절제술의 관혈성 여부를 판정하는 근거가 되지 않음</div>
-</div>
-<div class="card">
- <div class="hd"><span class="id">EC-011</span>
- <span class="term">관혈적 처치</span>
- <span class="tag">Case Critic 반려</span>
- <span class="tag">시도 2</span></div>
- <div class="why">시나리오에 날짜·일수가 전혀 없고 dates 4개 항목이 모두 '미확인'이어서, 특정 피보험자의 특정 처치 건이 아니라 '내시경적 절제술의 분류' 일반론으로 서술되어 있음 — 개별 사례로서의 구체성 결여</div>
+ <div class="why">시나리오에 '이 입원의 한도일수 구체값은 주어진 조문에서 확인할 수 없다'고 적었으나 사실이 아니다. 참조 조문 목록에 있는 특약 제4조 제1항이 '1회 입원당 120일을 한도로 지급합니다'라고 한도일수를 명시하고 있다. 사례는 이 조항을 인용하지 않고 한도가 불명확하다는 전제로 작성되었다.</div>
 </div>
 <div class="card">
  <div class="hd"><span class="id">EC-013</span>
- <span class="term">계약일부터 1년이 되는 날까지 발생한 질병으로 인한 입원</span>
+ <span class="term">관혈적 처치 / 내시경적 절제술 / 1종에 준하여 지급합니다</span>
  <span class="tag">Case Critic 반려</span>
  <span class="tag">시도 1</span></div>
- <div class="why">해석A와 해석B가 서로 다른 결론에 이르지 않는다. 해석B 자체가 '결론이 같다', recommendation도 '두 해석이 같은 결론에 이르므로 경계사례가 아니다'라고 명시하고 있어, 두 해석이 대립하는 결론을 만들지 못한다.</div>
-</div>
-<div class="card">
- <div class="hd"><span class="id">EC-013</span>
- <span class="term">계약일부터 1년이 되는 날까지 발생한 질병으로 인한 입원</span>
- <span class="tag">Case Critic 반려</span>
- <span class="tag">시도 2</span></div>
- <div class="why">근거 조문 [별표1] 입원일수 산정기준표 제4호(퇴원 후 180일 이내 재입원 시 계속된 하나의 입원)는 이 사안의 사실관계와 무관하다. dates에 재입원 사실이 없고 단일 입원(2026-03-05~2026-03-20)만 존재하며, 해석A·해석B 어느 쪽 논증에도 재입원 합산 법리가 사용되지 않는다. 검토질문 4에서 가정적으로 언급될 뿐이어서 해석을 뒷받침하는 근거가 되지 못한다.</div>
+ <div class="why">1. 두 해석은 '수술에 해당하는가'에서만 결론이 갈린다. 해석B는 비고 '1종에 준하여'를 따르면 '300,000원과 다른 금액이 산출될 수 있다'고 하지만, [별표2] 표1행에 1종 수술의 지급금액이 300,000원으로 적혀 있다. 따라서 지급액에 관한 두 해석의 차이는 실제로 존재하지 않으며, 쟁점의 둘째 축이 허구다.</div>
 </div>
 <div class="card">
  <div class="hd"><span class="id">EC-014</span>
- <span class="term">퇴원한 날부터 180일 이내에 동일한 원인으로 재입원한 경우</span>
+ <span class="term">요양병원에 입원한 경우에도 제3조를 적용합니다 / 요양, 안정, 휴양 또는 이와 유사한 것을 주된 목적으로 하는 입원</span>
  <span class="tag">Case Critic 반려</span>
  <span class="tag">시도 1</span></div>
- <div class="why">해석A와 해석B가 서로 다른 결론이 아니다. A는 '180일 요건 미충족 → 연속성 부정 → 120일 한도 재기산'이고, B는 '동일 원인을 고려해도 180일 수치 기준을 초과하므로 연속성 인정 근거 없음'으로, B는 A와 동일한 결론을 보강 논증한 것에 불과하다. 대립 해석이 아니라 같은 결론의 재진술이다.</div>
+ <div class="why">시나리오가 구체적이지 않음: 계약일·발병일·입원 시작일·입원 종료일이 모두 '미확인'이다. 급성기 병원 입원 기간, 요양병원 전원 시점, 요양병원 입원 일수도 나오지 않는다. 날짜·일수 없는 추상적 사례이므로 기준 2에 따라 반려함.</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-014</span>
+ <span class="term">요양병원에 입원한 경우에도 제3조를 적용합니다 / 요양, 안정, 휴양 또는 이와 유사한 것을 주된 목적으로 하는 입원</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 2</span></div>
+ <div class="why">근거 조문이 두 해석을 제대로 뒷받침하지 못한다(4번 기준). 참조 조문 목록에 있는 특약 제5조("이 특약에 대하여는 보통약관 제5조(보험금을 지급하지 않는 사유)를 준용합니다")를 빠뜨렸다. 특약은 이 조문으로 면책사유를 직접 정하고 있다.</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-014</span>
+ <span class="term">요양병원에 입원한 경우에도 제3조를 적용합니다 / 요양, 안정, 휴양 또는 이와 유사한 것을 주된 목적으로 하는 입원</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 3</span></div>
+ <div class="why">시나리오에 날짜와 일수가 전혀 없다. dates의 계약일, 사고일, 입원 시작일, 입원 종료일은 모두 '미확인'이다. 급성기 치료 기간, 요양병원 입원 기간, 치료와 간병 기간의 비율도 '상당 부분'이라고만 적혀 있다. 해석B는 입원 기간을 치료가 주된 목적인 부분과 요양이 주된 목적인 부분으로 나누자고 하는데, 나눌 일수가 주어지지 않아 이 사례에 적용해 볼 수 없다.</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-018</span>
+ <span class="term">[별표3]중복지급 기준표에 따릅니다</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 1</span></div>
+ <div class="why">시나리오의 전제가 주어진 조문과 맞지 않는다. 시나리오는 '주어진 [별표3] 행은 중환자실 입원기간 중 질병입원일당을 함께 지급한다는 내용뿐'이라고 쓰고 있다. 그러나 참조 조문에는 표1행('중환자실 입원기간 / 1-3. 중환자실 입원일당 특별약관의 보험금을 지급합니다')과 표3행('일반병실로 이동한 이후 / 1-1. 또는 1-2. 특별약관을 적용합니다')도 있다. 표3행은 상해입원일당(1-2)을 직접 언급하며, 그 적용 시점을 일반병실로 이동한 이후로 정한다. 따라서 이 사안의 06-03~06-07 중환자실 기간에 상해입원일당을 어떻게 처리할지와 직접 관련된 행이다. 이 행들을 빼고 '상해입원일당 행이 없다'며 규정공백으로 본 것은 문언을 잘못 옮긴 것이다.</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-025</span>
+ <span class="term">계약일부터 1년이 되는 날까지 발생한 질병</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 1</span></div>
+ <div class="why">지급 여부에 대한 최종 결론을 내렸다(5번). expected_outcome은 '검토 필요'로 두었지만, 해석A가 '제3조의 지급사유에 해당한다'고 판정하고 50퍼센트 지급을 기준으로 처리한다고 확정한다. unresolved_issues도 '해석 A가 명백히 우세하다', '해석 B는 문언에 근거가 없다'고 결론을 낸다. review_questions 역시 해석 A로 정리되는지를 정답으로 삼고, contract_status에도 '감액기간중'이라고 결론이 미리 들어가 있다.</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-027</span>
+ <span class="term">계약일부터 1년이 되는 날까지 발생한 질병</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 1</span></div>
+ <div class="why">[5] 지급액에 대한 결론을 미리 내리고 있다. 해석A는 '제3조 금액 전액을 기준으로 처리한다'고 단정한다. 해석B는 본문 안에서 '이 해석은 문언과 맞지 않는다'며 스스로 배척된다. review_questions도 '감액을 적용하지 않는 쪽이 우세하다고 정리하는지 확인한다'고 적어 정답을 정해 둔다. expected_outcome이 '검토 필요'로 되어 있어도, 이 레코드는 사실상 감액 없는 전액 지급이라는 최종 결론을 내리고 있다.</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-026</span>
+ <span class="term">1회 입원당 120일을 한도</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 1</span></div>
+ <div class="why">검토 5 위반: 지급에 대한 최종 결론을 내리고 있다. interpretation_a는 '질병입원일당 전액을 기준으로 10일분을 산정한다'고 지급액을 확정하고, unresolved_issues는 '해석 A가 명백히 우세하다'고 판정한다. expected_outcome을 '검토 필요'로 적었지만 실제로는 전액·10일분 지급으로 결론을 낸 셈이다.</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-026</span>
+ <span class="term">1회 입원당 120일을 한도</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 2</span></div>
+ <div class="why">근거 조문이 해석 A를 뒷받침하지 않음(4번 기준): 별표1 제4호는 '퇴원한 날부터 180일 이내에 동일한 원인으로 재입원한 경우'에만 적용되는 조문이다. 이 사례는 '퇴원 없이' 계속 입원한 경우라 이 조건을 충족하지 않는다. 그런데도 시나리오와 해석 A는 이 조문을 '한도일수를 최초 입원일부터 센다'는 일반 원칙처럼 인용하면서 재입원 조건을 빠뜨렸다. 해석 A의 핵심 근거가 이 사실관계에는 적용되지 않는 조문이다.</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-026</span>
+ <span class="term">1회 입원당 120일을 한도</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 3</span></div>
+ <div class="why">근거 조문과 결론이 맞지 않는다(기준 4). 시나리오와 unresolved_issues 3번은 '제시된 [별표1] 조항은 퇴원 후 재입원만 다룬다'고 전제한다. 이 전제로 1-1 특약 제4조 제2항이 계속 입원의 기산점 근거가 될 수 없다고 본다. 그러나 참조 조문 목록에는 [별표1] 제1호 '입원일수는 입원한 날부터 퇴원한 날까지로 합니다.'가 들어 있다. 이 호는 퇴원 없는 계속 입원의 입원일수를 입원한 날부터 퇴원한 날까지로 정한다. 따라서 해석A(입원 시작일 2026-07-15부터 기산)를 뒷받침할 수 있다. 사례는 이 조항을 빠뜨린 채 제4조 제2항을 인용하고 '산정 기준이 주어진 조문 안에서 확인되지 않음'이라는 규정공백을 주장한다. 주어진 조문과 어긋나는 전제다. [별표1] 제1호를 반영하도록 다시 써야 한다. 예를 들어 제1호가 입원일수 산정은 정하지만 갱신 계약의 한도 재기산 여부는 정하지 않는다는 식으로 쟁점을 좁히고, 제1호를 cited_clauses에 넣어야 한다.</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-028</span>
+ <span class="term">이 특약의 보장개시일</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 1</span></div>
+ <div class="why">[기준1] 해석A와 해석B의 결론이 같다. 둘 다 질병입원일당을 지급하지 않는다는 결론이고, 근거만 다르다(A는 원인이 상해, B는 보장개시일 전). 해석B 본문도 '결과 판단은 비슷해 보이지만 근거가 틀렸다'고 스스로 인정한다. 해석B는 경쟁하는 해석이 아니라 잘못된 추론의 예시로 쓰였다.</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-028</span>
+ <span class="term">이 특약의 보장개시일</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 2</span></div>
+ <div class="why">주어진 조문을 잘못 설명했다. unresolved_issues에서 '질병입원일당 특약의 지급사유 조문은 제시되지 않았다'고 적었지만, 참조 조문 목록에 [1-1. 질병입원일당 특별약관|제3조]가 있다. 이 조문에는 '보험기간 중에 질병으로 인하여 병원에 입원한 경우 입원 1일당 … 지급합니다'라는 문장이 있어, 사건 기준 문구와 일수 기준 문구가 모두 들어 있다. 쟁점을 판단하는 데 직접 필요한 조문인데, 없다고 잘못 적었다.</div>
+</div>
+<div class="card">
+ <div class="hd"><span class="id">EC-028</span>
+ <span class="term">이 특약의 보장개시일</span>
+ <span class="tag">Case Critic 반려</span>
+ <span class="tag">시도 3</span></div>
+ <div class="why">unresolved_issues 두 번째 항목은 '별표1이 제시되지 않아 보장개시일 전에 시작된 입원의 일수를 어떻게 산정하는지 확인할 수 없다'고 합니다. 그러나 참조 조문에는 [별표1] 입원일수 산정기준표 제1호('입원일수는 입원한 날부터 퇴원한 날까지로 합니다.')와 제3호가 실제로 있습니다. 주어진 조문의 존재를 잘못 기술했습니다.</div>
 </div>
 </div></body></html>

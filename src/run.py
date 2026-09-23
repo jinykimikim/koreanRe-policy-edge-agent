@@ -22,6 +22,7 @@
 """
 import argparse
 import copy
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -159,6 +160,20 @@ def retrieve_evidence(retriever, case, verbose):
     return query, hits
 
 
+def case_fingerprint(case):
+    """사례 내용의 짧은 해시. 사례별 캐시 키에 case_id와 함께 붙인다.
+
+    case_id만으로 키를 만들면 ID가 겹칠 때 먼저 처리된 사례의 판정과
+    재생성본이 다른 사례에 그대로 재사용된다. 실제로 겪은 버그라
+    내용이 같을 때만 캐시가 맞도록 해시를 함께 쓴다. 이전 ID 체계로
+    만든 캐시 항목도 이 때문에 새 실행에서 재사용되지 않는다.
+    """
+    body = {k: v for k, v in case.items()
+            if not k.startswith("_") and k != "case_id"}
+    raw = json.dumps(body, ensure_ascii=False, sort_keys=True)
+    return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:10]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--use-cache", action="store_true",
@@ -206,6 +221,16 @@ def main():
     for t in terms:
         log("탐지", f"  · [{t.get('dimension', '미지정')}] {t.get('term')}")
 
+    # case_id는 코드가 부여한다. Generator가 출력에 case_id를 넣어 와도
+    # 덮어쓴다. 추가 생성분은 매번 EC-011부터 다시 매겨 와서 서로 다른
+    # 사례가 같은 ID를 공유했고, 그 ID로 만든 캐시 키가 충돌했다.
+    ids = {"seq": 0}
+
+    def assign_ids(records):
+        for r in records:
+            ids["seq"] += 1
+            r["case_id"] = f"EC-{ids['seq']:03d}"
+
     # ── STEP 2 · Scenario Generator ───────────────────────
     cases = []
     for t in terms:
@@ -214,6 +239,7 @@ def main():
         pool = seed + [a for a in anchors if a and a not in seed]
         key = f"gen::{t.get('term')}::1"
         got = cache.get(key, lambda t=t, p=pool: A.generate_cases(t, p, dims))
+        assign_ids(got)
         for r in got:
             r["_term"] = t.get("term")
             r["_pool_ids"] = [c["id"] for c in pool]
@@ -285,6 +311,7 @@ def main():
                 lambda p=pseudo, po=pool, ex=existing:
                 A.generate_cases(p, po, dims, missing_dimensions=[name],
                                  existing=ex))
+            assign_ids(extra)
             for r in extra:
                 r["_term"] = pseudo["term"]
                 r["_pool_ids"] = [c["id"] for c in pool]
@@ -305,6 +332,7 @@ def main():
                 lambda p=pseudo, po=pool, g=dict(gap), ex=existing:
                 A.generate_cases(p, po, dims, missing_types=g,
                                  existing=ex, n=sum(g.values())))
+            assign_ids(extra)
             for r in extra:
                 r["_term"] = pseudo["term"]
                 r["_pool_ids"] = [c["id"] for c in pool]
@@ -315,7 +343,7 @@ def main():
 
     # ── STEP 4~6 · 사례별 근거 확보 → 비평 → 검증 ─────────
     passed, rejected = [], []
-    state = {"first": True, "seq": 0}
+    state = {"first": True}
 
     def materialize_citations(case, candidates):
         """cited_text를 원문에서 주입하고, 후보 밖 인용을 걷어낸다.
@@ -354,8 +382,7 @@ def main():
         추가 생성분도 같은 경로를 타야 하므로 함수로 분리했다.
         통과하면 레코드를, 실패하면 None을 돌려준다.
         """
-        state["seq"] += 1
-        case.setdefault("case_id", f"EC-{state['seq']:03d}")
+        # case_id는 생성 직후 assign_ids가 이미 부여했다.
         cur, attempt = case, 1
         while True:
             query, evidence = retrieve_evidence(retriever, cur,
@@ -383,7 +410,8 @@ def main():
                                 f"{len(dropped)}건 제거: "
                                 f"{', '.join(dropped[:2])}")
 
-            ckey = f"critic::{cur['case_id']}::{attempt}"
+            fp = case_fingerprint(cur)
+            ckey = f"critic::{cur['case_id']}::{attempt}::{fp}"
             verdicts = cache.get(ckey, lambda c=cur, e=candidates:
                                  A.case_critic([c], e))
             v = next((x for x in verdicts
@@ -420,7 +448,7 @@ def main():
                     "why": cur.get("_term", ""),
                     "dimension": cur.get("coverage_dimension"),
                     "where": cur.get("cited_clauses") or []}
-            gkey = f"regen::{cur['case_id']}::{attempt}"
+            gkey = f"regen::{cur['case_id']}::{attempt}::{fp}"
             got = cache.get(gkey, lambda t=term, e=evidence, r=reasons:
                             A.generate_cases(t, e, dims, feedback=r[:4], n=1))
             if not got:
@@ -512,6 +540,7 @@ def main():
                 lambda p=pseudo, po=pool, ex=existing:
                 A.generate_cases(p, po, dims, missing_dimensions=[name],
                                  existing=ex))
+            assign_ids(got)
             for r in got:
                 r["_term"] = pseudo["term"]
                 r["_pool_ids"] = [c["id"] for c in pool]
@@ -527,6 +556,7 @@ def main():
                 lambda p=pseudo, po=pool, g=dict(fgap), ex=existing:
                 A.generate_cases(p, po, dims, missing_types=g,
                                  existing=ex, n=sum(g.values())))
+            assign_ids(got)
             for r in got:
                 r["_term"] = pseudo["term"]
                 r["_pool_ids"] = [c["id"] for c in pool]
