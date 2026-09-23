@@ -1,0 +1,537 @@
+Prompt Development Log
+
+보험 약관 경계사례·민원 가능 사례 생성 AI Agent (Example 03)
+
+0. 문서 목적
+
+본 문서는 보험 약관 경계사례 탐지 AI Agent를 구현하는 과정에서 실제로
+사용한 주요 프롬프트와 설계 변경 과정을 정리한 기록이다.
+
+프롬프트를 단순히 시간순으로 나열하기보다, 최종 구현에 반영된 설계
+의사결정이 어떻게 만들어졌는지를 실무자가 재현할 수 있도록 다음 순서로
+정리하였다.
+
+-   당시 해결하려던 문제
+-   프롬프트에서 요구한 사항
+-   주요 설계 결정
+-   구현에 반영된 결과
+
+초기 테스트 과정에서 발생한 단순 오류, 일시적인 설정 변경, 구현 중 실수
+등은 제외하고 최종 구조에 영향을 준 프롬프트 중심으로 정리하였다.
+
+------------------------------------------------------------------------
+
+1. 프로젝트의 기본 목적 정의
+
+1-1. 문제 정의
+
+Example 03의 목적은 LLM이 보험금 지급 여부를 자동으로 판정하는 것이
+아니다.
+
+약관 작성·검토 단계에서 사람이 사전에 예상하기 어려운 경계사례(boundary
+case)를 생성하고, 해당 사례가 실제 약관에서 명확하게 처리될 수 있는지를
+확인하여 사람이 검토해야 할 약관의 문제 지점을 찾는 것이 목적이다.
+
+대표적인 판단 경계의 예시는 다음과 같다.
+
+-   면책기간의 시작·종료일 경계
+-   입원·재입원 경계
+-   직접적인 치료의 범위
+-   수술 인정 범위
+-   동일 사고·동일 질병의 판단
+-   약관상 정의되지 않은 용어
+-   여러 조건이 동시에 적용되는 경우
+
+따라서 전체 구조는 단순한
+
+LLM → 사례 생성
+
+이 아니라,
+
+약관 → 판단조건 탐색 → 사례 생성 → 근거 검색 → 검토/판정 → 반복 검증 →
+Human Review
+
+로 발전시키는 방향으로 설계하였다.
+
+------------------------------------------------------------------------
+
+2. Agent 기본 구조 설계
+
+2-1. 당시 해결하려던 문제
+
+기존 구현은 약관을 기반으로 경계사례를 생성하고 Retrieval 및 Judge를
+수행하는 형태였다.
+
+Agent 구조로 확장하기 위해서는 LLM이 사용할 수 있는 Tool과 각 단계의
+상태를 명확하게 정의할 필요가 있었다.
+
+2-2. 실제 주요 프롬프트
+
+다음과 같은 형태로 Agent의 1단계 구조를 요청하였다.
+
+  이제 Agent 구현 1단계를 진행하자. 현재 프로젝트의 기존 Pydantic
+  스키마와 실행 흐름을 확인한 뒤, 다음 두 가지를 설계해줘.
+
+  1.  RunState 스키마
+  2.  6개 Tool의 입력/출력 Pydantic 모델
+
+  대상 Tool: extract_dimensions generate_cases assess_coverage
+  retrieve_evidence judge_case score_clause
+
+  조건: 기존 EdgeCase, JudgeRun, CoverageAssessment, ClauseAmbiguity 등
+  이미 존재하는 스키마는 최대한 재사용할 것.
+
+  Agent와 Tool backend가 바뀌어도 Tool 계층은 재사용할 수 있도록
+  backend-independent하게 설계할 것.
+
+  원문과 evidence 전체를 RunState에 불필요하게 복제하지 말고, 가능한
+  경우 rider_code, case_id, chunk_id 같은 ID를 중심으로 상태를 관리할
+  것.
+
+  기존 캐시 격리 규칙을 유지할 것.
+
+  아직 기존 파일은 수정하지 말고, 어떤 파일에 어떤 모델을 추가할지와
+  전체 구조를 먼저 설명할 것.
+
+2-3. 주요 설계 결과
+
+이 프롬프트를 통해 다음 개념을 명확히 분리하였다.
+
+-   Tool: Agent가 호출할 수 있는 함수
+-   Tool Input/Output Schema: Tool의 입력·출력 형식
+-   RunState: Agent가 작업하면서 현재까지 보유한 상태
+-   기존 Pydantic schema와의 호환성
+-   ID 기반 상태 관리
+-   기존 결과물 및 캐시와의 호환성
+
+또한 기존 산출물과의 호환성을 유지하기 위해 run_state.json뿐 아니라 기존
+edge_cases.json, evidence.json, judge_runs.json 등의 결과 형식도 함께
+유지하는 방향을 설정하였다.
+
+------------------------------------------------------------------------
+
+3. Coverage Critic 도입
+
+3-1. 도입 배경
+
+단순히 Generator에게 사례를 여러 개 생성하도록 하면 특정 유형의 사례만
+반복적으로 생성될 가능성이 있다.
+
+따라서 “생성된 사례가 약관의 주요 판단조건을 충분히 테스트하고
+있는가?”를 별도로 확인하는 단계가 필요하다고 판단하였다.
+
+이때 Coverage Critic은 개별 사례의 지급 여부를 판정하는 역할이 아니라,
+사례 집합 전체의 coverage를 평가하는 역할로 정의하였다.
+
+3-2. 주요 프롬프트
+
+  현재 구현되어 있는 약관 경계사례 생성 파이프라인을 수정하고 싶다.
+
+  [현재 구조] Policy → Scenario Generator → Evidence Retrieval → Judge ×
+  5
+
+  [변경 목표] 설계 검토 의견의
+
+  Scenario Generator → Coverage Critic → Evidence Retriever → Judge →
+  Human Review
+
+  구조를 반영하고 싶다.
+
+  단, Coverage Critic은 개별 사례의 지급 여부를 판정하는 역할이 아니다.
+
+  “생성된 사례 집합이 약관의 주요 판단조건과 경계조건을 충분히
+  커버하는지”를 평가하는 역할이다.
+
+  다음 구조로 구현해줘.
+
+  Policy → Coverage Dimension Extractor → Scenario Generator → Coverage
+  Critic → [coverage 부족] Scenario Generator로 loop → [coverage 충분]
+  Evidence Retrieval → Judge × 5
+
+3-3. Coverage Dimension
+
+Coverage Dimension은 약관에서 결과에 영향을 줄 수 있는 주요 판단축 또는
+경계조건이다.
+
+예:
+
+-   사고 유형
+-   대상 질환/상해
+-   수술 여부
+-   수술 방법
+-   보험기간
+-   동일 사고 여부
+-   입원/재입원
+-   기간 경계
+-   약관상 판단 기준 부재
+
+Dimension은 Generator와 Critic이 공통으로 사용하여, 어떤 영역을
+테스트했는지 추적할 수 있도록 설계하였다.
+
+3-4. Coverage Critic의 출력
+
+Coverage Critic은 구조화된 JSON을 출력하도록 요구하였다.
+
+예:
+
+{ “coverage_sufficient”: false, “coverage_score”: 0.65,
+“covered_dimensions”: [], “missing_dimensions”: [],
+“duplicate_or_redundant_cases”: [], “missing_case_types”: [],
+“generation_instructions”: [] }
+
+특히 단순 점수 계산으로 끝내지 않고, coverage가 부족할 경우 Generator가
+추가 사례를 생성할 수 있도록 missing dimensions와 generation
+instructions를 전달하도록 설계하였다.
+
+------------------------------------------------------------------------
+
+4. Generator–Critic Loop 설계
+
+4-1. 주요 프롬프트
+
+  Coverage Critic 결과가 coverage_sufficient=false이면 Critic의
+  generation_instructions를 Scenario Generator에 전달해서 추가 사례를
+  생성한다.
+
+  예:
+
+  Generator → Critic → 부족 → Generator(추가 사례 생성) → Critic → 부족
+  → Generator → Critic → 충분 → Retrieval
+
+  중요: 기존 사례를 매번 전부 폐기하지 말고, 가능하면 기존 사례 + 추가
+  사례를 누적해서 coverage를 평가한다.
+
+  무한 루프가 발생하지 않도록 max_iterations를 설정한다. 기본값은 3으로
+  한다.
+
+4-2. 설계 의도
+
+Coverage Critic의 역할을 단순 평가기로 두지 않고, 평가 결과가 다음
+행동을 결정하도록 하였다.
+
+즉,
+
+Coverage 부족 → 누락된 판단축 확인 → 추가 사례 생성 → 다시 Coverage 평가
+
+라는 conditional loop를 구현하는 것을 목표로 하였다.
+
+------------------------------------------------------------------------
+
+5. 판단불가 원인 분리
+
+5-1. 문제 정의
+
+경계사례를 생성하고 LLM이 판단하지 못했다고 해서 그 원인이 반드시 약관의
+문제인 것은 아니다.
+
+예를 들어 다음 두 상황은 구분해야 한다.
+
+1.  관련 약관은 충분히 검색되었지만 약관 자체에 판단 기준이 없음
+2.  실제로 필요한 약관이 존재하지만 Retrieval이 이를 찾지 못함
+
+따라서 판단불가 원인을 별도로 분류하도록 설계하였다.
+
+5-2. 주요 분류
+
+-   stable
+-   clause_ambiguous
+-   clause_silent
+-   fact_missing
+-   retrieval_failed
+
+각 의미는 다음과 같다.
+
+-   stable: 약관 근거를 바탕으로 비교적 안정적으로 판단 가능
+-   clause_ambiguous: 관련 근거는 있으나 문구 자체가 모호하여 해석이
+    갈림
+-   clause_silent: 관련 약관은 검색되었지만 해당 상황을 규율하는 기준이
+    없음
+-   fact_missing: 판단에 필요한 사실관계가 부족함
+-   retrieval_failed: 필요한 약관 근거를 검색하지 못함
+
+이 분류를 통해 “AI가 판단하지 못했다”에서 끝나는 것이 아니라, 왜
+판단하지 못했는지를 구분하는 것을 목표로 하였다.
+
+------------------------------------------------------------------------
+
+6. Evidence Retriever와 Judge의 역할 분리
+
+6-1. 설계 방향
+
+Generator가 생성한 사례 또는 LLM이 제시한 citation을 그대로 신뢰하지
+않고, 실제 약관 원문에서 관련 evidence를 다시 검색하도록 설계하였다.
+
+전체 구조는 다음과 같다.
+
+Scenario Generator ↓ Coverage Critic ↓ Evidence Retriever ↓ Case/Judge ↓
+Code Verify ↓ Test Case Formatter ↓ Human Reviewer
+
+6-2. Hybrid Retrieval
+
+Retrieval은 키워드 기반 검색과 의미 기반 검색을 함께 사용하는 Hybrid
+Retrieval 구조를 적용하는 방향으로 설계하였다.
+
+-   BM25: 약관의 정확한 용어 및 키워드 검색
+-   Embedding: 표현이 달라도 의미적으로 관련된 조항 검색
+-   RRF: 두 검색 결과를 결합
+
+이를 통해 약관 전문용어와 자연어 표현의 차이로 인해 필요한 근거가
+누락되는 문제를 줄이는 것을 목표로 하였다.
+
+------------------------------------------------------------------------
+
+7. Case Critic / Code Verify 역할 분리
+
+7-1. Case Critic
+
+Case Critic은 개별 사례의 의미적 품질을 검토한다.
+
+주요 검토 항목:
+
+-   Interpretation A/B가 실제로 다른가?
+-   Scenario가 충분히 구체적인가?
+-   Citation이 실제 약관에 존재하는가?
+-   Evidence보다 과도한 결론을 내리고 있지 않은가?
+-   지급/부지급을 직접 단정하고 있지 않은가?
+
+7-2. Code Verify
+
+LLM이 판단하는 것보다 코드로 명확하게 확인할 수 있는 항목은
+deterministic validation으로 분리하였다.
+
+예:
+
+-   필수 필드 누락
+-   존재하지 않는 clause ID
+-   cited_text와 원문 불일치
+-   Interpretation A/B 동일 여부
+-   지급/부지급 결론을 포함하는지 여부
+-   필수 형식 준수 여부
+
+이 구조를 통해 LLM의 판단 자체를 다시 LLM에게만 맡기는 것을 피하고,
+명확한 규칙은 코드가 다시 검증하도록 하였다.
+
+------------------------------------------------------------------------
+
+8. Reject → Regenerate → Re-retrieve Loop
+
+8-1. 개선 배경
+
+실행 과정에서 Case Critic 또는 Code Verify가 사례를 reject하더라도
+단순히 해당 사례를 버리는 것보다, reject 사유를 Generator에 전달하여
+다시 생성하는 구조가 Agent workflow의 핵심이라고 판단하였다.
+
+8-2. 최종 목표 구조
+
+Generator → Coverage Critic → Evidence Retriever → Case Critic → Code
+Verify → Test-case Formatter
+
+Case Critic 또는 Verify에서 Reject가 발생하면:
+
+Reject → Feedback 전달 → Generator 재생성 → Evidence Retriever 재검색 →
+Case Critic → Code Verify
+
+로 순환하도록 설계하였다.
+
+특히 시나리오가 변경되면 기존 evidence를 그대로 사용하는 것이 아니라
+해당 시나리오에 대해 evidence retrieval을 다시 수행하도록 하였다.
+
+무한 반복을 방지하기 위해 각 loop에 MAX_RETRY를 적용하였다.
+
+------------------------------------------------------------------------
+
+9. Test Case Formatter와 Human Review
+
+9-1. Formatter
+
+Generator의 edge-case record와 실제 업무용 Test Case는 구분하였다.
+
+최종 Test Case에는 가능한 경우 다음 정보를 구조화한다.
+
+-   Case ID
+-   Case Type
+-   Scenario
+-   날짜
+-   계약상태
+-   사고원인
+-   급부코드
+-   Interpretation A
+-   Interpretation B
+-   Evidence
+-   미확정 쟁점
+-   Review Questions
+-   Recommendation
+-   Status
+
+날짜, 계약상태, 사고원인 등의 정보는 단순히 scenario 문자열에 포함시키지
+않고 별도 field로 구조화하는 방향을 사용하였다.
+
+9-2. Human Reviewer
+
+최종 결과는 AI가 지급/부지급을 확정하는 형태가 아니라 사람이 검토할 수
+있는 Test Case로 제공한다.
+
+사람이 확인할 주요 질문:
+
+-   이 사례가 실제 업무상 의미가 있는가?
+-   약관 근거가 충분한가?
+-   해석 A/B가 실제로 다른가?
+-   추가로 약관에 명시해야 할 기준이 있는가?
+-   Test Case로 채택할 것인가?
+
+따라서 Human Review는 단순히 HTML을 읽는 단계가 아니라 최종 업무 판단을
+사람이 수행하는 단계로 정의하였다.
+
+------------------------------------------------------------------------
+
+10. Prompt Review 및 아키텍처 검증
+
+구현이 진행된 후에는 단순히 “코드가 실행되는가”만 확인하지 않고, 별도의
+리뷰 프롬프트를 통해 Agent 구조 자체를 점검하였다.
+
+주요 요청 내용:
+
+-   현재 구조가 Agent라고 부를 수 있는지 검토
+-   Python orchestration과 LLM call의 역할 분리 검토
+-   Coverage / Critic / Retrieval / Verify의 역할 중복 여부 검토
+-   왜 Agent가 필요한지 설명 가능한지 검토
+-   Generator와 Critic이 같은 모델일 때 발생할 수 있는 correlated error
+    검토
+-   Evidence Retriever가 실제로 독립적인 검증인지 검토
+-   Code Verify가 검증할 수 있는 것과 검증할 수 없는 것 구분
+-   Human-in-the-loop가 형식적인 단계가 아닌지 검토
+-   최종 Test Case가 실제 업무에서 활용 가능한 형태인지 검토
+
+이 단계에서는 구현을 무조건 추가하기보다, 현재 구조의 논리적 허점을 먼저
+확인하는 방식으로 프롬프트를 작성하였다.
+
+------------------------------------------------------------------------
+
+11. 실제 실행 결과를 반영한 프롬프트 개선
+
+프롬프트는 한 번 작성하고 끝낸 것이 아니라 실제 실행 결과를 확인하면서
+최종 설계에 필요한 부분만 보완하였다.
+
+대표적인 개선 사항:
+
+11-1. Retrieval 실패와 약관 문제의 구분
+
+초기에는 판단불가 사례가 검색 문제인지 약관 문제인지 명확하게 분리하기
+어려웠다.
+
+실제 evidence를 다시 확인한 뒤 다음과 같이 원인을 세분화하였다.
+
+retrieval_failed vs. clause_silent vs. clause_ambiguous vs. fact_missing
+
+이를 통해 “판단불가” 자체보다 “판단불가의 원인”을 분석하는 방향으로
+개선하였다.
+
+11-2. 증분 저장
+
+장시간 실행되는 Judge 과정에서 마지막에 한 번만 결과를 저장하면 중단 시
+결과가 모두 유실될 수 있었다.
+
+따라서 사례별 Judge 결과를 증분 저장하고 재실행할 수 있는 구조로
+개선하였다.
+
+11-3. 재현성과 캐시
+
+LLM 응답은 본질적으로 비결정적이므로 동일 입력에서 항상 동일한 결과가
+나온다고 가정하지 않는다.
+
+대신 실제 LLM 호출 결과를 cache에 저장하여 동일 실행을 replay할 수
+있도록 설계하였다.
+
+------------------------------------------------------------------------
+
+12. 최종 Agent Workflow
+
+최종적으로 Example 03의 구현 방향은 다음과 같이 정리하였다.
+
+약관 PDF ↓ 약관 Parsing / RAG ↓ Coverage Dimension Extractor ↓ Scenario
+Generator ↓ Coverage Critic ↓ [Coverage 부족] ↓ 추가 Scenario Generation
+↓ Coverage Critic ↓ [Coverage 충분] ↓ Evidence Retriever ↓ Case Critic ↓
+Code Verify ↓ [Reject] → Feedback → Regenerate → Re-retrieve → Critic →
+Verify ↓ [Pass] ↓ Test-case Formatter ↓ Human Reviewer
+
+이 구조의 핵심은 단순히 여러 번 LLM을 호출하는 것이 아니라,
+
+생성 → 평가 → 근거 재검색 → 검증 → 실패 시 재생성
+
+이라는 조건부 Agent Loop를 구현하는 것이다.
+
+------------------------------------------------------------------------
+
+13. 실무자 관점에서의 프롬프트 작성 원칙
+
+최종적으로 프롬프트를 작성할 때 다음 원칙을 적용하였다.
+
+1.  먼저 현재 코드와 산출물을 확인하도록 요청한다.
+2.  기존 기능을 무조건 새로 만들지 않고 재사용 가능성을 먼저 검토한다.
+3.  LLM이 담당할 판단과 코드가 담당할 deterministic validation을
+    구분한다.
+4.  각 Agent 역할의 입력과 출력을 명확히 정의한다.
+5.  구조화된 JSON/Pydantic schema를 사용하여 다음 단계가 결과를
+    안정적으로 사용할 수 있도록 한다.
+6.  Reject가 발생했을 때 단순히 버리지 않고 feedback을 다음 generation에
+    전달한다.
+7.  사례가 변경되면 evidence도 다시 검색한다.
+8.  반복 loop에는 반드시 종료 조건을 둔다.
+9.  Human Reviewer가 최종 판단할 수 있도록 미확정 쟁점과 근거를
+    보존한다.
+10. 구현되어 있다고 설명하는 것에 그치지 않고 실제 실행 로그와 생성
+    파일을 확인한다.
+
+------------------------------------------------------------------------
+
+14. README와의 관계
+
+README에는 이 문서의 전체 프롬프트를 그대로 넣지 않는다.
+
+README에는 다음 정도만 간단히 설명한다.
+
+Prompt Development
+
+본 프로젝트는 구현 과정에서 단계별 요구사항을 구체화하는 방식으로 Agent
+workflow를 설계하였다.
+
+주요 설계 단계는 다음과 같다.
+
+1.  Agent State / Tool Schema 설계
+2.  Coverage Dimension 및 Coverage Critic 도입
+3.  Generator–Critic Loop 구현
+4.  Evidence Retrieval과 Case Critic 분리
+5.  Code-based Verify 추가
+6.  Reject–Regenerate–Re-retrieve Loop 구현
+7.  Test Case Formatter 및 Human Review 구조화
+
+상세한 프롬프트와 설계 변경 과정은 PROMPT_DEVELOPMENT_LOG.txt에서 확인할
+수 있다.
+
+README에서는 프로젝트를 처음 보는 사람이 시스템의 목적과 실행 방법을
+빠르게 이해할 수 있도록 하고, 프롬프트 전문과 개발 과정은 별도 문서로
+관리한다.
+
+------------------------------------------------------------------------
+
+15. 최종 요약
+
+이 프로젝트에서 프롬프트는 단순히 “경계사례를 만들어 달라”고 요청하는
+용도로 사용한 것이 아니다.
+
+프롬프트를 통해:
+
+-   Agent의 역할을 정의하고
+-   Tool과 State의 구조를 정하고
+-   어떤 판단축을 테스트할지 정의하고
+-   Coverage 부족 시 추가 행동을 결정하게 하고
+-   실제 약관 근거를 다시 검색하게 하고
+-   Critic과 Code Verify로 결과를 검증하고
+-   Reject 시 다시 생성하도록 하고
+-   최종 결과를 사람이 검토할 수 있는 Test Case로 구조화
+
+하는 전체 Agent workflow를 단계적으로 설계하였다.
+
+따라서 본 문서에서 중요한 것은 개별 프롬프트의 길이보다, “문제 발견 →
+프롬프트로 요구사항 구체화 → 구현 → 실제 실행 확인 → 다음 설계 개선”
+이라는 개발 과정이다.

@@ -1,0 +1,143 @@
+[목적]
+보험 약관 초안에서 판정 기준이 모호하거나 문서 간에 다르게 정해진 지점을 찾아,
+약관 수정 검토로 넘길 수 있는 테스트 케이스로 구조화하는 에이전트를 만들어줘.
+지급 여부를 판정하는 도구가 아니야. 약관 작성 과정에서 놓친 사례를 드러내는 것이 목적이야.
+
+[입력]
+- data/policy_sample.pdf (교육용 가상 약관)
+- parse_policy.py로 조문 단위로 파싱해 work/clauses.json에 저장 (1회 실행)
+
+[워크플로]
+1. 모호 표현 탐지 (LLM) — 처리 표현 최대 5개
+2. Scenario Generator (LLM) — 표현별 사례 생성
+3. Coverage Critic (LLM) — 사례 집합이 판단 경계 축을 고루 덮는지, 사례 유형이 쏠렸는지 평가
+   - insufficient면 미충족 축을 전달해 2단계에서 추가 생성. 기존 사례는 누적. 최대 2회
+4. Evidence Retriever (코드) — BM25 + Dense 하이브리드 검색, RRF로 순위 결합
+5. Case Critic (LLM) — 사례 하나씩: 해석이 실제로 갈리는지, 근거가 결론을 뒷받침하는지
+6. Code Verify (코드) — 조문 실재, 인용 일치, 날짜 형식, 금지 표현 확인
+   - 5 또는 6에서 반려 시: 반려 사유 반영해 재생성 → 4단계 재검색 → 5 → 6. 사례별 최대 2회
+7. Test-case Formatter (코드)
+8. Human Reviewer용 HTML 생성 (코드)
+목표 케이스 10건. 상한에 걸려 멈추는 것은 실패가 아니라 설계로 처리해.
+
+[검토 구조]
+Case Critic과 Code Verify는 인용 실재 여부, 해석 A/B 동일 여부를 의도적으로 중복 확인해.
+Case Critic도 Generator와 같은 모델이라 같은 실수를 할 수 있으니,
+찾아보거나 계산하면 답이 나오는 항목은 코드가 다시 봐야 해.
+Case Critic은 통과시켰는데 Code Verify가 반려한 경우 로그에 따로 표시해줘.
+
+[검색]
+- 임베딩 모델은 환경변수 EMBED_MODEL로 지정 (기본 BAAI/bge-m3)
+- 모델 로드 실패 시 BM25로 조용히 내려가지 말고 오류 내고 멈출 것
+- 임베딩 인덱스는 clauses.json 해시나 모델명이 바뀌면 자동 무효화
+
+[판단 경계 축] (src/dimensions.py)
+기간경계, 입원·재입원, 문서간충돌, 판정기준부재, 급부중복, 판단불가.
+각 축은 실제 조항(anchors)에 연결하고, 연결이 확인되지 않는 축은 제외 후 로그에 남겨.
+사례 유형(정상사례, 경계사례, 반례, 판단불가)은 별도 축으로 균형을 봐.
+
+[출력 규칙]
+- 날짜, 계약상태, 사고원인, 급부코드는 시나리오 문장에서 분리해 별도 필드로
+- 약관에서 확인할 수 없는 값은 지어내지 말고 "미확인"
+- 기대결과는 항상 "검토 필요". 지급/부지급 확정 금지 (SKILL.md 규칙 + verify.py 문자열 검사)
+- 약관만으로 결론이 나지 않는 사례는 판단불가 유형으로 보존
+- 산출물: demo_output.html, test_cases.json, edge_cases.json/.md, rejected.json(사유·반려 주체 포함), loop_log.jsonl
+
+[재현성]
+--use-cache 옵션으로 LLM 응답을 캐시해 동일 실행을 재생할 수 있게 해줘.
+검색은 캐시 사용 시에도 매번 실제로 수행해.
+
+[구현 전 확인]
+바로 코드를 수정하지 말고 먼저 현재 구현을 확인해.
+다음 파일과 산출물을 우선 읽어:
+- src/run.py
+- src/agent.py 또는 현재 LLM 호출부
+- src/retrieve.py
+- src/verify.py
+- src/parse_policy.py
+- src/dimensions.py
+- .claude/skills/policy-edge-case-probe/SKILL.md
+- README.md
+- 현재 outputs/
+- 현재 work/
+
+현재 구현되어 있는 기능과 이번 요구사항을 먼저 매핑하고,
+기존 기능을 재사용할 수 있는 부분은 최대한 재사용해.
+코드에 없는 기능을 구현되어 있다고 가정하지 마.
+
+[역할 분리]
+LLM이 담당할 의미적 판단과 Code가 담당할 deterministic validation을 명확히 분리해.
+Case Critic과 Code Verify가 일부 항목을 중복 확인하는 것은 의도적인 설계야.
+Generator와 Critic이 같은 모델을 사용할 수 있으므로,
+조문 존재 여부, 인용문 일치, 날짜 형식 등 찾아보거나 계산하면 확인할 수 있는 항목은 Code Verify가 다시 확인해야 해.
+
+Case Critic은 통과했지만 Code Verify가 반려한 사례가 발생하면
+loop_log.jsonl에 두 단계의 결과가 모두 드러나도록 기록해.
+
+[판단 경계 축]
+다음 6개 축을 기본 후보로 사용해:
+- 기간경계
+- 입원·재입원
+- 문서간충돌
+- 판정기준부재
+- 급부중복
+- 판단불가
+
+단, 이 목록을 약관과 무관한 고정된 공식 분류로 취급하지 마.
+각 축은 실제 약관 조항(anchors)과 연결되어야 하며,
+실제 조항과 연결되지 않는 축은 제외하고 그 사실을 로그에 남겨.
+
+사례 유형은 Dimension과 별도로 관리해:
+- 정상사례
+- 경계사례
+- 반례
+- 판단불가
+
+Coverage Critic은 판단 경계 축뿐 아니라 사례 유형의 편중도 함께 확인해야 해.
+
+[Retrieval]
+Hybrid Retrieval을 기본 검색 방식으로 사용해:
+BM25 + Dense Retrieval + RRF
+
+임베딩 모델은 EMBED_MODEL 환경변수로 설정하고 기본값은 BAAI/bge-m3로 해.
+임베딩 모델 로드에 실패하면 BM25로 조용히 fallback하지 말고 명확한 오류를 발생시켜.
+임베딩 인덱스는 clauses.json의 hash와 embedding model 정보를 함께 사용해 캐시하고,
+둘 중 하나가 변경되면 기존 index를 무효화해.
+
+[출력 규칙]
+날짜, 계약상태, 사고원인, 급부코드는 scenario 문자열에만 넣지 말고 별도 field로 구조화해.
+약관에서 확인할 수 없는 값은 임의로 생성하지 말고 "미확인"으로 기록해.
+expected_outcome은 항상 "검토 필요"로 두고 지급/부지급을 확정하지 마.
+약관만으로 결론을 낼 수 없는 사례는 판단불가 유형으로 보존해.
+
+최종 산출물:
+- demo_output.html
+- test_cases.json
+- edge_cases.json
+- edge_cases.md
+- rejected.json (반려 사유와 반려 주체 포함)
+- loop_log.jsonl
+
+[실행 검증]
+구현이 끝났다고 설명하는 것으로 끝내지 말고 실제로 실행해.
+최소한 다음을 확인해:
+1. 모호 표현 탐지가 실행되는가?
+2. Scenario Generator가 실행되는가?
+3. Coverage Critic이 실행되는가?
+4. Coverage 부족 시 추가 generation이 발생하는가?
+5. Evidence Retriever가 실제 약관 원문을 다시 검색하는가?
+6. Case Critic이 실행되는가?
+7. Code Verify가 실행되는가?
+8. Reject → Regenerate → Re-retrieve가 실제 발생하는가?
+9. Test Case Formatter가 실행되는가?
+10. HTML과 JSON 산출물이 생성되는가?
+11. --use-cache replay가 작동하는가?
+12. --use-cache에서도 Retrieval은 실제로 수행되는가?
+
+마지막에는 다음을 보고해:
+- 변경한 파일
+- 핵심 변경사항
+- 실제 실행 로그
+- 생성된 Test Case 예시
+- 최종 HTML 경로
+- 남은 한계
